@@ -18,8 +18,7 @@ namespace LetterSender
 		{
 			log.LogInformation("C# HTTP trigger function processed a request.");
 
-			var slackWebhookUrl = "https://hooks.slack.com/services/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";
-			//Utils.GetEnvironmentVariable("SLACK_WEBHOOK_URL");
+			var slackWebhookUrl = Utils.GetEnvironmentVariable("SLACK_WEBHOOK_URL");
 
 			var submission = await Utils.ExtractJsonPayload<EmailSubmission>(req.Body);
 
