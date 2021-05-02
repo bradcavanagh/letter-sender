@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
@@ -16,7 +17,7 @@ namespace LetterSender
 			[HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
 			HttpRequest req, ILogger log)
 		{
-			log.LogInformation("C# HTTP trigger function processed a request.");
+			log.LogInformation("C# HTTP trigger function processed a request");
 
 			var slackWebhookUrl = Utils.GetEnvironmentVariable("SLACK_WEBHOOK_URL");
 
@@ -28,7 +29,16 @@ namespace LetterSender
 
 			await Utils.SaveMessageToStorageAccount(submission);
 
-			return new HttpResponseMessage(HttpStatusCode.Accepted);
+			var response = new HttpResponseMessage(HttpStatusCode.Accepted)
+			{
+				Content = new StringContent(JsonSerializer.Serialize(
+					new
+					{
+						Id = submissionId.ToString()
+					}))
+			};
+
+			return response;
 		}
 	}
 }
