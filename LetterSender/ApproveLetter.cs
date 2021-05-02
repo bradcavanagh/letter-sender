@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -15,7 +16,11 @@ namespace LetterSender
 			[HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
 			HttpRequest req, ILogger log)
 		{
-			log.LogInformation("C# HTTP trigger function processed a request.");
+			log.LogInformation("C# HTTP trigger function processed a request");
+
+			using var streamReader = new StreamReader(req.Body);
+			var requestBodyString = await streamReader.ReadToEndAsync();
+			log.LogInformation("Body: {RequestBodyString}", requestBodyString);
 
 			return new HttpResponseMessage(HttpStatusCode.Accepted);
 		}
