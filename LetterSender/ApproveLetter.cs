@@ -38,20 +38,20 @@ namespace LetterSender
 
 			log.LogInformation("{ResponseUrl}", submission.ResponseUrl);
 
-			var sender = "yesinnewwest@gmail.com";
-			var receiver = "brad.cavanagh@gmail.com";
-			var subject = "test from azure function";
-			var body = "this is a test";
-
-			var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-			var client = new SendGridClient(apiKey);
-			var from = new EmailAddress(sender);
-			var to = new EmailAddress(receiver);
-			var plainTextContent = body;
-			var htmlContent = "<strong>and easy to do anywhere, even with C#</strong>";
-			var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
-			var response = await client.SendEmailAsync(msg);
-
+			// var sender = "yesinnewwest@gmail.com";
+			// var receiver = "brad.cavanagh@gmail.com";
+			// var subject = "test from azure function";
+			// var body = "this is a test";
+			//
+			// var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+			// var client = new SendGridClient(apiKey);
+			// var from = new EmailAddress(sender);
+			// var to = new EmailAddress(receiver);
+			// var plainTextContent = body;
+			// var htmlContent = "<strong>and easy to do anywhere, even with C#</strong>";
+			// var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+			// var response = await client.SendEmailAsync(msg);
+			//
 			var httpClient = new HttpClient();
 			var postBody = new Dictionary<string, string> {{"text", "Thanks!"}};
 			var response2 = await httpClient.PostAsJsonAsync(submission.ResponseUrl, new
