@@ -1,15 +1,14 @@
-using System.Collections.Generic;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Amazon;
-using Amazon.SimpleEmailV2;
-using Amazon.SimpleEmailV2.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 
 namespace LetterSender
 {
@@ -43,24 +42,14 @@ namespace LetterSender
 			var subject = "test from azure function";
 			var body = "this is a test";
 
-			using var client = new AmazonSimpleEmailServiceV2Client(RegionEndpoint.CACentral1);
-			var sendRequest = new SendEmailRequest
-			{
-				FromEmailAddress = sender,
-				Destination = new Destination
-				{
-					ToAddresses = new List<string> { receiver }
-				},
-				Content = new EmailContent
-				{
-					Simple = new Message
-					{
-						Body = new Body { Text = new Content { Data = body } },
-						Subject = new Content { Data = subject },
-					}
-				}
-			};
-			var response = await client.SendEmailAsync(sendRequest);
+			var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+			var client = new SendGridClient(apiKey);
+			var from = new EmailAddress(sender);
+			var to = new EmailAddress(receiver);
+			var plainTextContent = body;
+			var htmlContent = "<strong>and easy to do anywhere, even with C#</strong>";
+			var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+			var response = await client.SendEmailAsync(msg);
 
 			return new HttpResponseMessage(HttpStatusCode.Accepted);
 		}
