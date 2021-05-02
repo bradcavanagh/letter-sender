@@ -37,7 +37,7 @@ namespace LetterSender
 
 			log.LogInformation("{ResponseUrl}", submission.ResponseUrl);
 
-			var sender = "brad.cavanagh@gmail.com";
+			var sender = "yesinnewwest@gmail.com";
 			var receiver = "brad.cavanagh@gmail.com";
 			var subject = "test from azure function";
 			var body = "this is a test";
