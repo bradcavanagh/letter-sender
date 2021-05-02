@@ -18,9 +18,23 @@ namespace LetterSender
 		{
 			log.LogInformation("C# HTTP trigger function processed a request");
 
+			// The request body from Slack is a string that starts with "payload=",
+			// and the remainder is URL-encoded JSON (why). Strip off the beginning
+			// and decode the remainder.
 			using var streamReader = new StreamReader(req.Body);
 			var requestBodyString = await streamReader.ReadToEndAsync();
+			var urlDecoded = WebUtility.HtmlDecode(requestBodyString[8..]);
+
+			var submission = Utils.ExtractJsonPayload<SlackSubmission>(urlDecoded);
 			log.LogInformation("Body: {RequestBodyString}", requestBodyString);
+
+			var token = Utils.GetEnvironmentVariable("SLACK_TOKEN");
+			if (!token.Equals(submission.Token))
+			{
+				return new HttpResponseMessage(HttpStatusCode.Accepted);
+			}
+
+			log.LogInformation("{ResponseUrl}", submission.ResponseUrl);
 
 			return new HttpResponseMessage(HttpStatusCode.Accepted);
 		}
