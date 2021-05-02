@@ -22,7 +22,11 @@ namespace LetterSender
 
 		public static TPayload ExtractJsonPayload<TPayload>(string reqBody)
 		{
-			return JsonSerializer.Deserialize<TPayload>(reqBody);
+			var options = new JsonSerializerOptions
+			{
+				PropertyNameCaseInsensitive = true,
+			};
+			return JsonSerializer.Deserialize<TPayload>(reqBody, options);
 		}
 
 		public static async Task PostMessageToSlack(EmailSubmission submission, Guid id, Uri uri)
