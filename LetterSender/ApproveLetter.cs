@@ -54,8 +54,10 @@ namespace LetterSender
 
 			var httpClient = new HttpClient();
 			var postBody = new Dictionary<string, string> {{"text", "Thanks!"}};
-			var content = new FormUrlEncodedContent(postBody);
-			var response2 = await httpClient.PostAsJsonAsync(submission.ResponseUrl, content);
+			var response2 = await httpClient.PostAsJsonAsync(submission.ResponseUrl, new
+			{
+				text = "Thanks!"
+			});
 
 			return new HttpResponseMessage(HttpStatusCode.Accepted);
 		}
