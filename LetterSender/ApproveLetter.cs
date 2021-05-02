@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -50,6 +51,11 @@ namespace LetterSender
 			var htmlContent = "<strong>and easy to do anywhere, even with C#</strong>";
 			var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
 			var response = await client.SendEmailAsync(msg);
+
+			var httpClient = new HttpClient();
+			var postBody = new Dictionary<string, string> {{"text", "Thanks!"}};
+			var content = new FormUrlEncodedContent(postBody);
+			var response2 = await httpClient.PostAsync(submission.ResponseUrl, content);
 
 			return new HttpResponseMessage(HttpStatusCode.Accepted);
 		}
