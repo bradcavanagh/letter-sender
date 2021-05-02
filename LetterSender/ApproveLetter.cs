@@ -53,10 +53,19 @@ namespace LetterSender
 			// var response = await client.SendEmailAsync(msg);
 			//
 			var httpClient = new HttpClient();
-			var postBody = new Dictionary<string, string> {{"text", "Thanks!"}};
 			var response2 = await httpClient.PostAsJsonAsync(submission.ResponseUrl, new
 			{
-				text = "Thanks!"
+				attachments = new []
+				{
+					new
+					{
+						fallback = ":white_check_mark: Approved!",
+						color = "good",
+						text = ":white_check_mark: Approved!"
+					}
+				},
+				replace_original = "true",
+				response_type = "in_channel"
 			});
 
 			return new HttpResponseMessage(HttpStatusCode.Accepted);
