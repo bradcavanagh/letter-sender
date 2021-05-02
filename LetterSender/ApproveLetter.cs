@@ -23,6 +23,7 @@ namespace LetterSender
 			// and decode the remainder.
 			using var streamReader = new StreamReader(req.Body);
 			var requestBodyString = await streamReader.ReadToEndAsync();
+			log.LogInformation("Request body string: {BodyString}", requestBodyString);
 			var urlDecoded = WebUtility.HtmlDecode(requestBodyString[8..]);
 			log.LogInformation("Decoded: {Decoded}", urlDecoded);
 			var submission = Utils.ExtractJsonPayload<SlackSubmission>(urlDecoded);
