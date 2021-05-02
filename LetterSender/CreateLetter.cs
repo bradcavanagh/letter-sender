@@ -26,6 +26,8 @@ namespace LetterSender
 
 			await Utils.PostMessageToSlack(submission, submissionId, new Uri(slackWebhookUrl));
 
+			await Utils.SaveMessageToStorageAccount(submission);
+
 			return new HttpResponseMessage(HttpStatusCode.Accepted);
 		}
 	}

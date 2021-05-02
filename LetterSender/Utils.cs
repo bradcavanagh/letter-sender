@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
-using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 
 namespace LetterSender
 {
@@ -94,10 +94,22 @@ namespace LetterSender
 		{
 			string payloadJson = JsonSerializer.Serialize(payload);
 
-			using (HttpClient client = new HttpClient())
-			{
-				var response = await client.PostAsync(uri.ToString(), new StringContent(payloadJson));
-			}
+			using HttpClient client = new HttpClient();
+			await client.PostAsync(uri.ToString(), new StringContent(payloadJson));
+		}
+
+		public static async Task SaveMessageToStorageAccount(EmailSubmission submission)
+		{
+			string connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+			BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
+			string containerName = DateTime.Now.ToString("yyyy-MM-dd");
+			BlobContainerClient containerClient = await blobServiceClient.CreateBlobContainerAsync(containerName);
+
+			BlobClient blobClient = containerClient.GetBlobClient(DateTime.Now.ToString("O"));
+
+			JsonSerializerOptions options = new JsonSerializerOptions {WriteIndented = true};
+			await using MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(submission, options)));
+			await blobClient.UploadAsync(ms);
 		}
 
 		public static string GetEnvironmentVariable(string name)
