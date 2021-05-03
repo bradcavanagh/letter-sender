@@ -9,15 +9,13 @@ using Azure.Storage.Blobs;
 
 namespace LetterSender
 {
-	public class Utils
+	public static class Utils
 	{
-		public async static Task<TPayload> ExtractJsonPayload<TPayload>(Stream reqBody)
+		public static async Task<TPayload> ExtractJsonPayload<TPayload>(Stream reqBody)
 		{
-			using (var streamReader = new StreamReader(reqBody))
-			{
-				var requestBodyString = await streamReader.ReadToEndAsync();
-				return ExtractJsonPayload<TPayload>(requestBodyString);
-			}
+			using var streamReader = new StreamReader(reqBody);
+			var requestBodyString = await streamReader.ReadToEndAsync();
+			return ExtractJsonPayload<TPayload>(requestBodyString);
 		}
 
 		public static TPayload ExtractJsonPayload<TPayload>(string reqBody)
@@ -31,7 +29,7 @@ namespace LetterSender
 
 		public static async Task PostMessageToSlack(EmailSubmission submission, Guid id, Uri uri)
 		{
-			SlackPayload payload = new SlackPayload()
+			var payload = new SlackPayload()
 			{
 				Attachments = new List<SlackAttachment>()
 				{
@@ -94,30 +92,62 @@ namespace LetterSender
 			await PostMessage(payload, uri);
 		}
 
-		public static async Task PostMessage(SlackPayload payload, Uri uri)
+		private static async Task PostMessage(SlackPayload payload, Uri uri)
 		{
-			string payloadJson = JsonSerializer.Serialize(payload);
+			var payloadJson = JsonSerializer.Serialize(payload);
 
-			using HttpClient client = new HttpClient();
+			using var client = new HttpClient();
 			await client.PostAsync(uri.ToString(), new StringContent(payloadJson));
 		}
 
 		public static async Task SaveMessageToStorageAccount(EmailSubmission submission)
 		{
-			string connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
-			BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
-			string containerName = DateTime.Now.ToString("yyyy-MM-dd");
-			BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-			if (containerClient is null)
-			{
-				containerClient = await blobServiceClient.CreateBlobContainerAsync(containerName);
-			}
+			var connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+			var blobServiceClient = new BlobServiceClient(connectionString);
+			var containerName = DateTime.Now.ToString("yyyy-MM-dd");
+			var containerClient = blobServiceClient.GetBlobContainerClient(containerName) ?? await blobServiceClient.CreateBlobContainerAsync(containerName);
 
-			BlobClient blobClient = containerClient.GetBlobClient(DateTime.Now.ToString("O"));
+			var blobClient = containerClient.GetBlobClient(DateTime.Now.ToString("O"));
 
-			JsonSerializerOptions options = new JsonSerializerOptions {WriteIndented = true};
-			await using MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(submission, options)));
+			var options = new JsonSerializerOptions {WriteIndented = true};
+			await using var ms = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(submission, options)));
 			await blobClient.UploadAsync(ms);
+		}
+
+		public static async Task SendEmailAsync(SlackSubmission submission)
+		{
+			// var sender = "yesinnewwest@gmail.com";
+			// var receiver = "brad.cavanagh@gmail.com";
+			// var subject = "test from azure function";
+			// var body = "this is a test";
+			//
+			// var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+			// var client = new SendGridClient(apiKey);
+			// var from = new EmailAddress(sender);
+			// var to = new EmailAddress(receiver);
+			// var plainTextContent = body;
+			// var htmlContent = "<strong>and easy to do anywhere, even with C#</strong>";
+			// var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+			// var response = await client.SendEmailAsync(msg);
+		}
+
+		public static async Task SendUpdateToSlack(SlackSubmission submission, bool accept)
+		{
+			// var httpClient = new HttpClient();
+			// var response2 = await httpClient.PostAsJsonAsync(submission.ResponseUrl, new
+			// {
+			// 	attachments = new []
+			// 	{
+			// 		new
+			// 		{
+			// 			fallback = ":white_check_mark: Approved!",
+			// 			color = "good",
+			// 			text = ":white_check_mark: Approved!"
+			// 		}
+			// 	},
+			// 	replace_original = "true",
+			// 	response_type = "in_channel"
+			// });
 		}
 
 		public static string GetEnvironmentVariable(string name)
