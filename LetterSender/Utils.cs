@@ -133,21 +133,36 @@ namespace LetterSender
 
 		public static async Task SendUpdateToSlack(SlackSubmission submission, bool accept)
 		{
-			// var httpClient = new HttpClient();
-			// var response2 = await httpClient.PostAsJsonAsync(submission.ResponseUrl, new
-			// {
-			// 	attachments = new []
-			// 	{
-			// 		new
-			// 		{
-			// 			fallback = ":white_check_mark: Approved!",
-			// 			color = "good",
-			// 			text = ":white_check_mark: Approved!"
-			// 		}
-			// 	},
-			// 	replace_original = "true",
-			// 	response_type = "in_channel"
-			// });
+			var message = "";
+			if (accept)
+			{
+				message = $":white_check_mark: Approved by <@{submission.User.Id}|{submission.User.Name}>";
+			}
+			else
+			{
+				message = $":x: Rejected by <@{submission.User.Id}|{submission.User.Name}>";
+			}
+
+			var emailAtt = submission.OriginalMessage.Attachments[0];
+			var colour = accept ? "good" : "danger";
+
+			var httpClient = new HttpClient();
+			await httpClient.PostAsJsonAsync(submission.ResponseUrl, new
+			{
+				attachments = new object[]
+				{
+					emailAtt,
+					new
+					{
+						fallback = message,
+						color = colour,
+						text = message,
+						ts = (DateTime.UtcNow - new DateTime(1970,1,1)).TotalSeconds
+					}
+				},
+				replace_original = "true",
+				response_type = "in_channel"
+			});
 		}
 
 		public static string GetEnvironmentVariable(string name)

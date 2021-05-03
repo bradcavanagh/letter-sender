@@ -7,10 +7,17 @@ namespace LetterSender
 	{
 		public List<SlackSubmissionAction> Actions { get; set; }
 		public string Token { get; set; }
+		public SlackSubmissionUser User { get; set; }
 		[JsonPropertyName("original_message")]
 		public SlackSubmissionOriginalMessage OriginalMessage { get; set; }
 		[JsonPropertyName("response_url")]
 		public string ResponseUrl { get; set; }
+	}
+
+	public class SlackSubmissionUser
+	{
+		public string Id { get; set; }
+		public string Name { get; set; }
 	}
 
 	public class SlackSubmissionAction
