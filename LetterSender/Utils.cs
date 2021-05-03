@@ -105,7 +105,8 @@ namespace LetterSender
 			var connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
 			var blobServiceClient = new BlobServiceClient(connectionString);
 			var containerName = DateTime.Now.ToString("yyyy-MM-dd");
-			var containerClient = blobServiceClient.GetBlobContainerClient(containerName) ?? await blobServiceClient.CreateBlobContainerAsync(containerName);
+			var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+			await containerClient.CreateIfNotExistsAsync();
 
 			var blobClient = containerClient.GetBlobClient(DateTime.Now.ToString("O"));
 
