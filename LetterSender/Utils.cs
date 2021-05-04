@@ -13,6 +13,7 @@ using Amazon.SimpleEmailV2;
 using Amazon.SimpleEmailV2.Model;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using Content = Amazon.SimpleEmailV2.Model.Content;
@@ -155,19 +156,20 @@ namespace LetterSender
 			var emailRecipients = recipients
 				.Split(',', StringSplitOptions.RemoveEmptyEntries)
 				.Select(r => r.Split('|')[1].Replace(">", string.Empty))
-				.Select(e => new EmailAddress(e));
+				.Select(e => new EmailAddress(e))
+				.ToList();
 
- 			var message = new SendGridMessage
- 			{
- 				From = new EmailAddress(sender),
- 				Subject = submission.OriginalMessage.Attachments[0].Title
- 			};
- 			message.AddTos(emailRecipients.ToList());
+			var message = new SendGridMessage();
+			message.SetFrom(new EmailAddress(sender));
+			message.SetGlobalSubject(submission.OriginalMessage.Attachments[0].Title);
+			message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
+			for (var i = 0; i < emailRecipients.Count(); i++)
+			{
+				message.AddTo(emailRecipients[i], i);
+			}
 
- 			message.AddCc(new EmailAddress(emailAuthorEmail, emailAuthorName));
- //			message.SetReplyTo(new EmailAddress(emailAuthorEmail, emailAuthorName));
-
- 			message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
+ 			//message.AddCc(new EmailAddress(emailAuthorEmail, emailAuthorName));
+ 			//message.SetReplyTo(new EmailAddress(emailAuthorEmail, emailAuthorName));
 
  			log.LogInformation("{Message}", message.Serialize());
 
