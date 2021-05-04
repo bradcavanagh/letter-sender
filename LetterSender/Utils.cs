@@ -8,10 +8,13 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using Amazon.SimpleEmailV2;
+using Amazon.SimpleEmailV2.Model;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using Content = Amazon.SimpleEmailV2.Model.Content;
 
 namespace LetterSender
 {
@@ -150,27 +153,54 @@ namespace LetterSender
 			log?.LogInformation("Recipients: {Recipients}", recipients);
 			var emailRecipients = recipients
 				.Split(',', StringSplitOptions.RemoveEmptyEntries)
-				.Select(r => r.Split('|')[1].Replace(">", String.Empty))
-				.Select(e => new EmailAddress(e));
+				.Select(r => r.Split('|')[1].Replace(">", String.Empty));
+//				.Select(e => new EmailAddress(e));
+//
+// 			var message = new SendGridMessage
+// 			{
+// 				From = new EmailAddress(sender),
+// 				Subject = submission.OriginalMessage.Attachments[0].Title
+// 			};
+// //			message.AddTos(emailRecipients.ToList());
+//
+// 			message.AddCc(new EmailAddress(emailAuthorEmail, emailAuthorName));
+// 			message.SetReplyTo(new EmailAddress(emailAuthorEmail, emailAuthorName));
+//
+// 			message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
+//
+// 			log.LogInformation("{Message}", message.Serialize());
+//
+// 			var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+// 			var client = new SendGridClient(apiKey);
+//
+//			await client.SendEmailAsync(message);
 
-			var message = new SendGridMessage
+			using var awsClient = new AmazonSimpleEmailServiceV2Client(
+				Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID"),
+				Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY")
+			);
+			var emailRequest = new SendEmailRequest
 			{
-				From = new EmailAddress(sender),
-				Subject = submission.OriginalMessage.Attachments[0].Title
+				FromEmailAddress = emailAuthorEmail,
+				ReplyToAddresses = new List<string> {emailAuthorEmail},
+				Destination = new Destination
+				{
+					ToAddresses = emailRecipients.ToList(),
+					CcAddresses = new List<string>{emailAuthorEmail}
+				},
+				Content = new EmailContent
+				{
+					Simple = new Message
+					{
+						Subject = new Content
+						{
+							Charset = "UTF-8",
+							Data = submission.OriginalMessage.Attachments[0].Text
+						}
+					}
+				}
 			};
-			message.AddTos(emailRecipients.ToList());
-
-			message.AddCc(new EmailAddress(emailAuthorEmail, emailAuthorName));
-			message.SetReplyTo(new EmailAddress(emailAuthorEmail, emailAuthorName));
-
-			message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
-
-			log.LogInformation("{Message}", message.Serialize());
-
-			var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-			var client = new SendGridClient(apiKey);
-
-			await client.SendEmailAsync(message);
+			await awsClient.SendEmailAsync(emailRequest);
 		}
 
 		public static async Task SendUpdateToSlack(SlackSubmission submission, bool accept, ILogger log = null)
