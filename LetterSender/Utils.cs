@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Net.Mail;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -124,16 +125,28 @@ namespace LetterSender
 
 			var authorName = submission.OriginalMessage.Attachments[0].AuthorName;
 			authorName = HttpUtility.HtmlDecode(authorName);
-			log.LogInformation("Author: {Author}", authorName);
+			log?.LogInformation("Author: {Author}", authorName);
 
 			// authorName is of the form "Name <email>" so pull out the relevant information.
 			const string pattern = @"(?<name>.+) \<(?<email>.+)\>";
 			var m = Regex.Match(authorName, pattern);
+			var emailAuthorName = "";
+			var emailAuthorEmail = "";
 			if (m.Success)
 			{
-				log.LogInformation("Name: {Name}", m.Groups["name"].Value);
-				log.LogInformation("Email: {Email}", m.Groups["email"].Value);
+				emailAuthorName = m.Groups["name"].Value;
+				emailAuthorEmail = m.Groups["email"].Value;
 			}
+			else
+			{
+				return;
+			}
+
+			// Pull out the recipients.
+			var recipients = submission.OriginalMessage.Attachments[0].Fields[0].Value;
+			recipients = HttpUtility.HtmlDecode(recipients);
+			log?.LogInformation("Recipients: {Recipients}", recipients);
+
 			// var receiver = "brad.cavanagh@gmail.com";
 			// var subject = "test from azure function";
 			// var body = "this is a test";
