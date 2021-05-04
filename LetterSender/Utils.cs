@@ -150,23 +150,22 @@ namespace LetterSender
 			log?.LogInformation("Recipients: {Recipients}", recipients);
 			var emailRecipients = recipients
 				.Split(',', StringSplitOptions.RemoveEmptyEntries)
-				.Select(r => r.Split('|')[1].Replace(">", String.Empty));
-			log?.LogInformation("Email Recipients: {EmailRecipients}", emailRecipients);
+				.Select(r => r.Split('|')[1].Replace(">", String.Empty))
+				.Select(e => new EmailAddress(e));
 
 			var message = new SendGridMessage
 			{
 				From = new EmailAddress(sender, $"{emailAuthorName} via Yes In New West"),
 				Subject = submission.OriginalMessage.Attachments[0].Title
 			};
-			foreach (var emailRecipient in emailRecipients)
-			{
-				message.AddTo(new EmailAddress(emailRecipient));
-			}
+			message.AddTos(emailRecipients.ToList());
 
 			message.AddCc(new EmailAddress(emailAuthorEmail));
 			message.SetReplyTo(new EmailAddress(emailAuthorEmail));
 
 			message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
+
+			log.LogInformation("{Message}", message.Serialize());
 
 			var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
 			var client = new SendGridClient(apiKey);
