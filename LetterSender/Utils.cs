@@ -184,7 +184,7 @@ namespace LetterSender
 
 			var emailRequest = new SendEmailRequest
 			{
-				FromEmailAddress = emailAuthorEmail,
+				FromEmailAddress = sender,
 				ReplyToAddresses = new List<string> {emailAuthorEmail},
 				Destination = new Destination
 				{
