@@ -36,7 +36,7 @@ namespace LetterSender
 			if (submission.Actions[0].Name.Equals("approve", StringComparison.InvariantCultureIgnoreCase))
 			{
 				await Utils.SendEmailAsync(submission);
-				await Utils.SendUpdateToSlack(submission, true);
+				await Utils.SendUpdateToSlack(submission, true, log);
 			}
 			else
 			{

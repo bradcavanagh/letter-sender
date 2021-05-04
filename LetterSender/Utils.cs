@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
+using Microsoft.Extensions.Logging;
 
 namespace LetterSender
 {
@@ -132,7 +133,7 @@ namespace LetterSender
 			// var response = await client.SendEmailAsync(msg);
 		}
 
-		public static async Task SendUpdateToSlack(SlackSubmission submission, bool accept)
+		public static async Task SendUpdateToSlack(SlackSubmission submission, bool accept, ILogger log = null)
 		{
 			var message = "";
 			if (accept)
@@ -147,8 +148,7 @@ namespace LetterSender
 			var emailAtt = submission.OriginalMessage.Attachments[0];
 			var colour = accept ? "good" : "danger";
 
-			var httpClient = new HttpClient();
-			await httpClient.PostAsJsonAsync(submission.ResponseUrl, new
+			var jsonData = JsonSerializer.Serialize(new
 			{
 				attachments = new object[]
 				{
@@ -158,12 +158,17 @@ namespace LetterSender
 						fallback = message,
 						color = colour,
 						text = message,
-						ts = (DateTime.UtcNow - new DateTime(1970,1,1)).TotalSeconds
+						ts = (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds
 					}
 				},
 				replace_original = "true",
 				response_type = "in_channel"
 			});
+
+			log?.LogInformation("JSON sent to Slack: {Json}", jsonData);
+
+			var httpClient = new HttpClient();
+			await httpClient.PostAsync(submission.ResponseUrl, new StringContent(jsonData));
 		}
 
 		public static string GetEnvironmentVariable(string name)
