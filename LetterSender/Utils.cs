@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using Amazon;
 using Amazon.SimpleEmailV2;
 using Amazon.SimpleEmailV2.Model;
 using Azure.Storage.Blobs;
@@ -177,8 +178,10 @@ namespace LetterSender
 
 			using var awsClient = new AmazonSimpleEmailServiceV2Client(
 				Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID"),
-				Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY")
+				Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY"),
+				RegionEndpoint.CACentral1
 			);
+
 			var emailRequest = new SendEmailRequest
 			{
 				FromEmailAddress = emailAuthorEmail,
