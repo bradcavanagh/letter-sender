@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Mail;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -11,6 +10,8 @@ using System.Threading.Tasks;
 using System.Web;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 
 namespace LetterSender
 {
@@ -131,8 +132,8 @@ namespace LetterSender
 			// authorName is of the form "Name <email>" so pull out the relevant information.
 			const string pattern = @"(?<name>.+) \<(?<email>.+)\>";
 			var m = Regex.Match(authorName, pattern);
-			var emailAuthorName = "";
-			var emailAuthorEmail = "";
+			string emailAuthorName;
+			string emailAuthorEmail;
 			if (m.Success)
 			{
 				emailAuthorName = m.Groups["name"].Value;
@@ -152,18 +153,25 @@ namespace LetterSender
 				.Select(r => r.Split('|')[1].Replace(">", String.Empty));
 			log?.LogInformation("Email Recipients: {EmailRecipients}", emailRecipients);
 
-			// var receiver = "brad.cavanagh@gmail.com";
-			// var subject = "test from azure function";
-			// var body = "this is a test";
-			//
-			// var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-			// var client = new SendGridClient(apiKey);
-			// var from = new EmailAddress(sender);
-			// var to = new EmailAddress(receiver);
-			// var plainTextContent = body;
-			// var htmlContent = "<strong>and easy to do anywhere, even with C#</strong>";
-			// var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
-			// var response = await client.SendEmailAsync(msg);
+			var message = new SendGridMessage
+			{
+				From = new EmailAddress(sender, $"{emailAuthorName} via Yes In New West"),
+				Subject = submission.OriginalMessage.Attachments[0].Title
+			};
+			foreach (var emailRecipient in emailRecipients)
+			{
+				message.AddTo(new EmailAddress(emailRecipient));
+			}
+
+			message.AddCc(new EmailAddress(emailAuthorEmail));
+			message.SetReplyTo(new EmailAddress(emailAuthorEmail));
+
+			message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
+
+			var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+			var client = new SendGridClient(apiKey);
+
+			await client.SendEmailAsync(message);
 		}
 
 		public static async Task SendUpdateToSlack(SlackSubmission submission, bool accept, ILogger log = null)
