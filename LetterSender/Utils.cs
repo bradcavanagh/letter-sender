@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using Azure.Storage.Blobs;
@@ -124,6 +125,14 @@ namespace LetterSender
 			var authorName = submission.OriginalMessage.Attachments[0].AuthorName;
 			authorName = HttpUtility.HtmlDecode(authorName);
 			log.LogInformation("Author: {Author}", authorName);
+			// authorName is of the form "Name <email>" so pull out the relevant information.
+			const string pattern = @"(?<name>\w+) \<(?<email>.+)\>";
+			var m = Regex.Match(authorName, pattern);
+			if (m.Success)
+			{
+				log.LogInformation("Name: {Name}", m.Groups["name"].Value);
+				log.LogInformation("Email: {Email}", m.Groups["email"].Value);
+			}
 			// var receiver = "brad.cavanagh@gmail.com";
 			// var subject = "test from azure function";
 			// var body = "this is a test";
