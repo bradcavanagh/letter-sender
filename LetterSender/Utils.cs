@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 
@@ -116,9 +117,13 @@ namespace LetterSender
 			await blobClient.UploadAsync(ms);
 		}
 
-		public static async Task SendEmailAsync(SlackSubmission submission)
+		public static async Task SendEmailAsync(SlackSubmission submission, ILogger log = null)
 		{
-			// var sender = "yesinnewwest@gmail.com";
+			var sender = "yesinnewwest@gmail.com";
+
+			var authorName = submission.OriginalMessage.Attachments[0].AuthorName;
+			authorName = HttpUtility.HtmlDecode(authorName);
+			log.LogInformation("Author: {Author}", authorName);
 			// var receiver = "brad.cavanagh@gmail.com";
 			// var subject = "test from azure function";
 			// var body = "this is a test";
