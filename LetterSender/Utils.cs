@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Mail;
 using System.Text;
@@ -146,6 +147,10 @@ namespace LetterSender
 			var recipients = submission.OriginalMessage.Attachments[0].Fields[0].Value;
 			recipients = HttpUtility.HtmlDecode(recipients);
 			log?.LogInformation("Recipients: {Recipients}", recipients);
+			var emailRecipients = recipients
+				.Split(',', StringSplitOptions.RemoveEmptyEntries)
+				.Select(r => r.Split('|')[1].Replace(">", String.Empty));
+			log?.LogInformation("Email Recipients: {EmailRecipients}", emailRecipients);
 
 			// var receiver = "brad.cavanagh@gmail.com";
 			// var subject = "test from azure function";
