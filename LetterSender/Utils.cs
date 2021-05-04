@@ -125,8 +125,9 @@ namespace LetterSender
 			var authorName = submission.OriginalMessage.Attachments[0].AuthorName;
 			authorName = HttpUtility.HtmlDecode(authorName);
 			log.LogInformation("Author: {Author}", authorName);
+
 			// authorName is of the form "Name <email>" so pull out the relevant information.
-			const string pattern = @"(?<name>\w+) \<(?<email>.+)\>";
+			const string pattern = @"(?<name>.+) \<(?<email>.+)\>";
 			var m = Regex.Match(authorName, pattern);
 			if (m.Success)
 			{
