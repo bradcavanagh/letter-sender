@@ -155,13 +155,13 @@ namespace LetterSender
 
 			var message = new SendGridMessage
 			{
-				From = new EmailAddress(sender, $"{emailAuthorName} via Yes In New West"),
+				From = new EmailAddress(sender),
 				Subject = submission.OriginalMessage.Attachments[0].Title
 			};
 			message.AddTos(emailRecipients.ToList());
 
-			message.AddCc(new EmailAddress(emailAuthorEmail));
-			message.SetReplyTo(new EmailAddress(emailAuthorEmail));
+			message.AddCc(new EmailAddress(emailAuthorEmail, emailAuthorName));
+			message.SetReplyTo(new EmailAddress(emailAuthorEmail, emailAuthorName));
 
 			message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
 
