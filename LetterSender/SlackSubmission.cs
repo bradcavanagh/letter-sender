@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace LetterSender
 {
@@ -40,14 +41,19 @@ namespace LetterSender
 	{
 		[JsonPropertyName("author_name")]
 		public string AuthorName { get; set; }
+		[JsonPropertyName("text")]
 		public string Text { get; set; }
+		[JsonPropertyName("title")]
 		public string Title { get; set; }
+		[JsonPropertyName("fields")]
 		public List<SlackSubmissionField> Fields { get; set; }
 	}
 
 	public class SlackSubmissionField
 	{
+		[JsonPropertyName("title")]
 		public string Title { get; set; }
+		[JsonPropertyName("value")]
 		public string Value { get; set; }
 	}
 }
