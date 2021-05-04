@@ -185,7 +185,7 @@ namespace LetterSender
 			var emailRequest = new SendEmailRequest
 			{
 				FromEmailAddress = sender,
-				ReplyToAddresses = new List<string> {emailAuthorEmail},
+//				ReplyToAddresses = new List<string> {emailAuthorEmail},
 				Destination = new Destination
 				{
 					ToAddresses = emailRecipients.ToList(),
