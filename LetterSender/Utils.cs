@@ -198,7 +198,15 @@ namespace LetterSender
 						Subject = new Content
 						{
 							Charset = "UTF-8",
-							Data = submission.OriginalMessage.Attachments[0].Text
+							Data = submission.OriginalMessage.Attachments[0].Title
+						},
+						Body = new Body
+						{
+							Text = new Content
+							{
+								Charset = "UTF-8",
+								Data = submission.OriginalMessage.Attachments[0].Text
+							}
 						}
 					}
 				}
