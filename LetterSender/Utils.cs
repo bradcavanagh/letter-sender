@@ -162,7 +162,7 @@ namespace LetterSender
 				.ToList();
 
 			var message = new MimeMessage();
-			message.From.Add(new MailboxAddress(sender));
+			message.From.Add(new MailboxAddress(emailAuthorName, emailAuthorEmail));
 			foreach (var emailRecipient in emailRecipients)
 			{
 				message.To.Add(new MailboxAddress(emailRecipient.Name, emailRecipient.Email));
