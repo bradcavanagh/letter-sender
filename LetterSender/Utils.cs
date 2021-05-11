@@ -163,9 +163,9 @@ namespace LetterSender
 
 			var message = new MimeMessage();
 			message.From.Add(new MailboxAddress(sender));
-			for (var i = 0; i <= emailRecipients.Count; i++)
+			foreach (var emailRecipient in emailRecipients)
 			{
-				message.To.Add(new MailboxAddress(emailRecipients[i].Name, emailRecipients[i].Email));
+				message.To.Add(new MailboxAddress(emailRecipient.Name, emailRecipient.Email));
 			}
 
 			message.Subject = submission.OriginalMessage.Attachments[0].Title;
