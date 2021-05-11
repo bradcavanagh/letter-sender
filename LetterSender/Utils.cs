@@ -162,7 +162,7 @@ namespace LetterSender
 				.ToList();
 
 			var message = new MimeMessage();
-			message.From.Add(new MailboxAddress("Yes In New West", sender));
+			message.From.Add(new MailboxAddress($"{emailAuthorName} via Yes In New West", sender));
 			foreach (var emailRecipient in emailRecipients)
 			{
 				message.To.Add(new MailboxAddress(emailRecipient.Name, emailRecipient.Email));
