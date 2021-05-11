@@ -168,6 +168,7 @@ namespace LetterSender
 				message.To.Add(new MailboxAddress(emailRecipient.Name, emailRecipient.Email));
 			}
 			message.Cc.Add(new MailboxAddress(emailAuthorName, emailAuthorEmail));
+			message.ReplyTo.Add(new MailboxAddress(emailAuthorName, emailAuthorEmail));
 
 			message.Subject = submission.OriginalMessage.Attachments[0].Title;
 			message.Body = new TextPart("plain")
