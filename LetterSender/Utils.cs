@@ -8,17 +8,11 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
-using Amazon;
-using Amazon.SimpleEmailV2;
-using Amazon.SimpleEmailV2.Model;
 using Azure.Storage.Blobs;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 using MimeKit;
-using SendGrid;
 using SendGrid.Helpers.Mail;
-using Content = Amazon.SimpleEmailV2.Model.Content;
 
 namespace LetterSender
 {
@@ -130,7 +124,7 @@ namespace LetterSender
 
 		public static async Task SendEmailAsync(SlackSubmission submission, ILogger log = null)
 		{
-			var sender = "yesinnewwest@gmail.com";
+			const string sender = "yesinnewwest@gmail.com";
 
 			var authorName = submission.OriginalMessage.Attachments[0].AuthorName;
 			authorName = HttpUtility.HtmlDecode(authorName);
@@ -173,7 +167,7 @@ namespace LetterSender
 			message.Subject = submission.OriginalMessage.Attachments[0].Title;
 			message.Body = new TextPart("plain")
 			{
-				Text = $"This email was sent by {emailAuthorName} ({emailAuthorEmail}) through the Yes In New West letter sender.\n\n{submission.OriginalMessage.Attachments[0].Text}"
+				Text = $"{submission.OriginalMessage.Attachments[0].Text}\n\nThis email was sent by {emailAuthorName} ({emailAuthorEmail}) through the Yes In New West letter sender."
 			};
 
 			using var client = new SmtpClient();
@@ -181,74 +175,11 @@ namespace LetterSender
 			await client.AuthenticateAsync("apikey", Environment.GetEnvironmentVariable("SENDGRID_API_KEY"));
 			await client.SendAsync(message);
 			await client.DisconnectAsync(true);
-
-			// var message = new SendGridMessage();
-			// message.SetFrom(new EmailAddress(sender));
-			// message.SetGlobalSubject(submission.OriginalMessage.Attachments[0].Title);
-			// message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
-			// // log?.LogInformation("Adding {@Email} to recipients", emailRecipients[i]);
-			// // message.AddTo(emailRecipients[i], i);
-			// message.AddTos(emailRecipients);
-			//
-			// 	message.AddCc(new EmailAddress(emailAuthorEmail, emailAuthorName));
-			// 	//message.SetReplyTo(new EmailAddress(emailAuthorEmail, emailAuthorName));
-			//
-			// 	log.LogInformation("{Message}", message.Serialize());
-			//
-			// 	var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-			// 	var client = new SendGridClient(apiKey);
-			//
-			// await client.SendEmailAsync(message);
-
-// 			using var awsClient = new AmazonSimpleEmailServiceV2Client(
-// 				Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID"),
-// 				Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY"),
-// 				RegionEndpoint.CACentral1
-// 			);
-//
-// 			var emailRequest = new SendEmailRequest
-// 			{
-// 				FromEmailAddress = sender,
-// //				ReplyToAddresses = new List<string> {emailAuthorEmail},
-// 				Destination = new Destination
-// 				{
-// 					ToAddresses = emailRecipients.ToList(),
-// 					CcAddresses = new List<string>{emailAuthorEmail}
-// 				},
-// 				Content = new EmailContent
-// 				{
-// 					Simple = new Message
-// 					{
-// 						Subject = new Content
-// 						{
-// 							Charset = "UTF-8",
-// 							Data = submission.OriginalMessage.Attachments[0].Title
-// 						},
-// 						Body = new Body
-// 						{
-// 							Text = new Content
-// 							{
-// 								Charset = "UTF-8",
-// 								Data = submission.OriginalMessage.Attachments[0].Text
-// 							}
-// 						}
-// 					}
-// 				}
-// 			};
-// 			await awsClient.SendEmailAsync(emailRequest);
-		}
+	}
 
 		public static async Task SendUpdateToSlack(SlackSubmission submission, bool accept, ILogger log = null)
 		{
-			var message = "";
-			if (accept)
-			{
-				message = $":white_check_mark: Approved by <@{submission.User.Id}|{submission.User.Name}>";
-			}
-			else
-			{
-				message = $":x: Rejected by <@{submission.User.Id}|{submission.User.Name}>";
-			}
+			var message = accept ? $":white_check_mark: Approved by <@{submission.User.Id}|{submission.User.Name}>" : $":x: Rejected by <@{submission.User.Id}|{submission.User.Name}>";
 
 			var emailAtt = submission.OriginalMessage.Attachments[0];
 			var colour = accept ? "good" : "danger";
@@ -269,8 +200,6 @@ namespace LetterSender
 				replace_original = "true",
 				response_type = "in_channel"
 			});
-
-			log?.LogInformation("JSON sent to Slack: {Json}", jsonData);
 
 			var httpClient = new HttpClient();
 			await httpClient.PostAsync(submission.ResponseUrl, new StringContent(jsonData));
