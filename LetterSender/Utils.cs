@@ -163,7 +163,11 @@ namespace LetterSender
 
 			var message = new MimeMessage();
 			message.From.Add(new MailboxAddress(sender));
-			message.To.Add(new MailboxAddress(emailRecipients[0].Name, emailRecipients[0].Email));
+			for (var i = 0; i <= emailRecipients.Count; i++)
+			{
+				message.To.Add(new MailboxAddress(emailRecipients[i].Name, emailRecipients[i].Email));
+			}
+
 			message.Subject = submission.OriginalMessage.Attachments[0].Title;
 			message.Body = new TextPart("plain")
 			{
