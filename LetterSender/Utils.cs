@@ -172,7 +172,7 @@ namespace LetterSender
 			message.Subject = submission.OriginalMessage.Attachments[0].Title;
 			message.Body = new TextPart("plain")
 			{
-				Text = submission.OriginalMessage.Attachments[0].Text
+				Text = $"This email was sent by {emailAuthorName} ({emailAuthorEmail}) through the Yes In New West letter sender.\n\n{submission.OriginalMessage.Attachments[0].Text}"
 			};
 
 			using var client = new SmtpClient();
