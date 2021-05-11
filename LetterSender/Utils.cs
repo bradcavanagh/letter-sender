@@ -12,8 +12,10 @@ using Amazon;
 using Amazon.SimpleEmailV2;
 using Amazon.SimpleEmailV2.Model;
 using Azure.Storage.Blobs;
+using MailKit.Net.Smtp;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
+using MimeKit;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using Content = Amazon.SimpleEmailV2.Model.Content;
@@ -159,23 +161,38 @@ namespace LetterSender
 				.Select(e => new EmailAddress(e))
 				.ToList();
 
-			var message = new SendGridMessage();
-			message.SetFrom(new EmailAddress(sender));
-			message.SetGlobalSubject(submission.OriginalMessage.Attachments[0].Title);
-			message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
-			// log?.LogInformation("Adding {@Email} to recipients", emailRecipients[i]);
-			// message.AddTo(emailRecipients[i], i);
-			message.AddTos(emailRecipients);
+			var message = new MimeMessage();
+			message.From.Add(new MailboxAddress(sender));
+			message.To.Add(new MailboxAddress(emailRecipients[0].Name, emailRecipients[0].Email));
+			message.Subject = submission.OriginalMessage.Attachments[0].Title;
+			message.Body = new TextPart("plain")
+			{
+				Text = submission.OriginalMessage.Attachments[0].Text
+			};
 
- 			message.AddCc(new EmailAddress(emailAuthorEmail, emailAuthorName));
- 			//message.SetReplyTo(new EmailAddress(emailAuthorEmail, emailAuthorName));
+			using var client = new SmtpClient();
+			await client.ConnectAsync("smtp.sendgrid.net", 465, true);
+			await client.AuthenticateAsync("apikey", Environment.GetEnvironmentVariable("SENDGRID_API_KEY"));
+			await client.SendAsync(message);
+			await client.DisconnectAsync(true);
 
- 			log.LogInformation("{Message}", message.Serialize());
-
- 			var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
- 			var client = new SendGridClient(apiKey);
-
-			await client.SendEmailAsync(message);
+			// var message = new SendGridMessage();
+			// message.SetFrom(new EmailAddress(sender));
+			// message.SetGlobalSubject(submission.OriginalMessage.Attachments[0].Title);
+			// message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
+			// // log?.LogInformation("Adding {@Email} to recipients", emailRecipients[i]);
+			// // message.AddTo(emailRecipients[i], i);
+			// message.AddTos(emailRecipients);
+			//
+			// 	message.AddCc(new EmailAddress(emailAuthorEmail, emailAuthorName));
+			// 	//message.SetReplyTo(new EmailAddress(emailAuthorEmail, emailAuthorName));
+			//
+			// 	log.LogInformation("{Message}", message.Serialize());
+			//
+			// 	var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+			// 	var client = new SendGridClient(apiKey);
+			//
+			// await client.SendEmailAsync(message);
 
 // 			using var awsClient = new AmazonSimpleEmailServiceV2Client(
 // 				Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID"),
