@@ -163,12 +163,13 @@ namespace LetterSender
 			message.SetFrom(new EmailAddress(sender));
 			message.SetGlobalSubject(submission.OriginalMessage.Attachments[0].Title);
 			message.AddContent(MimeType.Text, submission.OriginalMessage.Attachments[0].Text);
-			for (var i = 0; i < emailRecipients.Count(); i++)
+			for (var i = 0; i < emailRecipients.Count; i++)
 			{
+				log?.LogInformation("Adding {@Email} to recipients", emailRecipients[i]);
 				message.AddTo(emailRecipients[i], i);
 			}
 
- 			//message.AddCc(new EmailAddress(emailAuthorEmail, emailAuthorName));
+ 			message.AddCc(new EmailAddress(emailAuthorEmail, emailAuthorName));
  			//message.SetReplyTo(new EmailAddress(emailAuthorEmail, emailAuthorName));
 
  			log.LogInformation("{Message}", message.Serialize());
